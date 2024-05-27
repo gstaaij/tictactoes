@@ -3,207 +3,24 @@
 
 #include "raylib.h"
 #include "raymath.h"
+#include "colors.h"
+#include "game.h"
+#include "grid.h"
+
+// stb-style libraries at the end, because we don't want the IMPLEMENTATION macros to be defined in the other headers
 #define ARENA_IMPLEMENTATION
 #include "arena/arena.h"
 
-#define BACKGROUND_COLOR RAYWHITE
-
 static Arena arena = {0};
 
-// --------------------
-
-typedef enum {
-    GAME_STATE_CROSS  = -1,
-    GAME_STATE_EMPTY  =  0,
-    GAME_STATE_CIRCLE =  1,
-} GameState;
-
-typedef struct {
-    bool (*clicked)(void* data, GameState currentGameState, Vector2 mousePos);
-    void (*draw)(void* data, Rectangle bounds);
-    void* data;
-} Game;
-
-void gameDummyClicked(void* data, GameState currentGameState, Vector2 mousePos) {
-    (void) data;
-    (void) currentGameState;
-    (void) mousePos;
-}
-
-// --------------------
-
-typedef struct {
-    GameState state;
-} CellData;
-
-#define CELL_PADDING 0.1
-#define LINE_THICK 0.05
-
-bool cellClicked(void* raw_data, GameState gameState, Vector2 mousePos) {
-    (void) mousePos;
-    CellData* data = raw_data;
-    if (!data->state) {
-        data->state = gameState;
-        return true;
-    }
-    return false;
-}
-
-void cellDraw(void* raw_data, Rectangle bounds) {
-    CellData* data = raw_data;
-
-    assert(bounds.width == bounds.height);
-    Vector2 pos = (Vector2) { bounds.x, bounds.y };
-    float size = bounds.width;
-
-    switch (data->state) {
-        case GAME_STATE_EMPTY: {} break;
-        case GAME_STATE_CROSS: {
-            Vector2 pos1 = Vector2AddValue(pos,        CELL_PADDING * size);
-            Vector2 pos2 = Vector2AddValue(pos, size - CELL_PADDING * size);
-            DrawLineEx(pos1, pos2, LINE_THICK * size, BLACK);
-            pos1 = Vector2Add(pos, (Vector2) { size - CELL_PADDING * size,        CELL_PADDING * size });
-            pos2 = Vector2Add(pos, (Vector2) {      + CELL_PADDING * size, size - CELL_PADDING * size });
-            DrawLineEx(pos1, pos2, LINE_THICK * size, BLACK);
-        } break;
-        case GAME_STATE_CIRCLE: {
-            pos = Vector2AddValue(pos, size/2);
-            DrawCircleV(pos, size / 2 - CELL_PADDING * size, BLACK);
-            DrawCircleV(pos, size / 2 - CELL_PADDING * size - LINE_THICK * size, BACKGROUND_COLOR);
-        } break;
-    }
-}
-
-Game cellCreate() {
-    CellData* data = arena_alloc(&arena, sizeof(*data));
-    memset(data, sizeof(*data), 1);
-    data->state = GAME_STATE_EMPTY;
-
-    return (Game) {
-        .clicked = cellClicked,
-        .draw = cellDraw,
-        .data = data,
-    };
-}
-
-// --------------------
-
-#define GRID_SIZE 3
-#define GRID_PADDING 0.05
-#define GRID_LINE_THICK 0.025
-
-typedef struct {
-    Game cells[GRID_SIZE][GRID_SIZE];
-    GameState winner;
-    Rectangle bounds;
-} GridData;
-
-Rectangle gridCalculateCellBounds(int y, int x, Rectangle gridBounds) {
-    assert(gridBounds.width == gridBounds.height);
-    float size = gridBounds.width;
-    float lineLen = size - GRID_PADDING * 2 * size;
-    float cellSize = (lineLen - (GRID_SIZE  - 1) * LINE_THICK * size) / GRID_SIZE;
-    return (Rectangle) {
-        .x = gridBounds.x + GRID_PADDING * size + x * (cellSize + LINE_THICK * size),
-        .y = gridBounds.y + GRID_PADDING * size + y * (cellSize + LINE_THICK * size),
-        .width  = cellSize,
-        .height = cellSize,
-    };
-}
-
-bool gridClicked(void* raw_data, GameState gameState, Vector2 mousePos) {
-    GridData* data = raw_data;
-    for (int y = 0; y < GRID_SIZE; ++y) {
-        for (int x = 0; x < GRID_SIZE; ++x) {
-            Game cell = data->cells[y][x];
-            Rectangle cellBounds = gridCalculateCellBounds(y, x, data->bounds);
-            if (mousePos.x >= cellBounds.x && mousePos.x < cellBounds.x + cellBounds.width &&
-                mousePos.y >= cellBounds.y && mousePos.y < cellBounds.y + cellBounds.height
-            ) {
-                return cell.clicked(cell.data, gameState, mousePos);
-            }
-        }
-    }
-    return false;
-}
-
-void gridDraw(void* raw_data, Rectangle bounds) {
-    GridData* data = raw_data;
-    data->bounds = bounds;
-
-    assert(bounds.width == bounds.height);
-    Vector2 pos = (Vector2) { bounds.x, bounds.y };
-    float size = bounds.width;
-
-    float lineLen = size - GRID_PADDING * 2 * size;
-    float cellSize = (lineLen - (GRID_SIZE  - 1) * LINE_THICK * size) / GRID_SIZE;
-
-    // Draw the vertical lines
-    for (int vline = 1; vline < GRID_SIZE; ++vline) {
-        Vector2 linePos1 = Vector2Add(pos, (Vector2) { GRID_PADDING * size + vline * (cellSize + LINE_THICK * size) - LINE_THICK * size / 2, GRID_PADDING * size });
-        Vector2 linePos2 = Vector2Add(linePos1, (Vector2) { 0, lineLen });
-        DrawLineEx(linePos1, linePos2, LINE_THICK * size, BLACK);
-    }
-    // Draw the horizontal lines
-    for (int hline = 1; hline < GRID_SIZE; ++hline) {
-        Vector2 linePos1 = Vector2Add(pos, (Vector2) { GRID_PADDING * size, GRID_PADDING * size + hline * (cellSize + LINE_THICK * size) - LINE_THICK * size / 2 });
-        Vector2 linePos2 = Vector2Add(linePos1, (Vector2) { lineLen, 0 });
-        DrawLineEx(linePos1, linePos2, LINE_THICK * size, BLACK);
-    }
-
-    // Draw the cells
-    for (int y = 0; y < GRID_SIZE; ++y) {
-        for (int x = 0; x < GRID_SIZE; ++x) {
-            Game cell = data->cells[y][x];
-            Rectangle cellBounds = gridCalculateCellBounds(y, x, bounds);
-            cell.draw(cell.data, cellBounds);
-        }
-    }
-}
-
-Game gridCreate() {
-    GridData* data = arena_alloc(&arena, sizeof(*data));
-    memset(data, sizeof(*data), 1);
-    for (int y = 0; y < GRID_SIZE; ++y) {
-        for (int x = 0; x < GRID_SIZE; ++x) {
-            data->cells[y][x] = cellCreate();
-            // data->cells[y][x].clicked(data->cells[y][x].data, (y+x)%2 + 1, Vector2Zero());
-        }
-    }
-    data->winner = GAME_STATE_EMPTY;
-
-    return (Game) {
-        .clicked = gridClicked,
-        .draw = gridDraw,
-        .data = data,
-    };
-}
-
-Game gridOfGridsCreate() {
-    GridData* data = arena_alloc(&arena, sizeof(*data));
-    memset(data, sizeof(*data), 1);
-    for (int y = 0; y < GRID_SIZE; ++y) {
-        for (int x = 0; x < GRID_SIZE; ++x) {
-            data->cells[y][x] = gridCreate();
-        }
-    }
-    data->winner = GAME_STATE_EMPTY;
-
-    return (Game) {
-        .clicked = gridClicked,
-        .draw = gridDraw,
-        .data = data,
-    };
-}
-
-// --------------------
-
 int main() {
+    SetConfigFlags(FLAG_VSYNC_HINT | FLAG_MSAA_4X_HINT);
     InitWindow(1280, 720, "TicTacToe Ultimate");
-    SetWindowState(FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT);
+    SetWindowState(FLAG_WINDOW_RESIZABLE);
     SetWindowMinSize(640, 480);
 
-    Game game = gridOfGridsCreate();
+    // Initialize the game
+    Game game = gridCreate(&arena, 1);
     GameState state = GAME_STATE_CROSS;
 
     while (!WindowShouldClose()) {

@@ -7,6 +7,9 @@
 
 static const char* CFILES[] = {
     "src/"APP_NAME".c",
+    "src/game.c",
+    "src/cell.c",
+    "src/grid.c",
 };
 
 void cflags(Nob_Cmd* cmd) {

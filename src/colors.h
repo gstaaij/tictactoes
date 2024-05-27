@@ -1,0 +1,4 @@
+#pragma once
+
+#define BACKGROUND_COLOR RAYWHITE
+#define FOREGROUND_COLOR BLACK
