@@ -150,6 +150,23 @@ Game gridCreate() {
     };
 }
 
+Game gridOfGridsCreate() {
+    GridData* data = arena_alloc(&arena, sizeof(*data));
+    memset(data, sizeof(*data), 1);
+    for (int y = 0; y < GRID_SIZE; ++y) {
+        for (int x = 0; x < GRID_SIZE; ++x) {
+            data->cells[y][x] = gridCreate();
+        }
+    }
+    data->winner = GAME_STATE_EMPTY;
+
+    return (Game) {
+        .clicked = gameDummyClicked,
+        .draw = gridDraw,
+        .data = data,
+    };
+}
+
 // --------------------
 
 int main() {
@@ -157,7 +174,7 @@ int main() {
     SetWindowState(FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT);
     SetWindowMinSize(640, 480);
 
-    Game game = gridCreate();
+    Game game = gridOfGridsCreate();
 
     while (!WindowShouldClose()) {
         BeginDrawing();
