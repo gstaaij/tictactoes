@@ -13,13 +13,13 @@ static Arena arena = {0};
 // --------------------
 
 typedef enum {
-    GAME_STATE_EMPTY = 0,
-    GAME_STATE_CROSS,
-    GAME_STATE_CIRCLE,
+    GAME_STATE_CROSS  = -1,
+    GAME_STATE_EMPTY  =  0,
+    GAME_STATE_CIRCLE =  1,
 } GameState;
 
 typedef struct {
-    void (*clicked)(void* data, GameState currentGameState, Vector2 mousePos);
+    bool (*clicked)(void* data, GameState currentGameState, Vector2 mousePos);
     void (*draw)(void* data, Rectangle bounds);
     void* data;
 } Game;
@@ -39,11 +39,14 @@ typedef struct {
 #define CELL_PADDING 0.1
 #define LINE_THICK 0.05
 
-void cellClicked(void* raw_data, GameState gameState, Vector2 mousePos) {
+bool cellClicked(void* raw_data, GameState gameState, Vector2 mousePos) {
     (void) mousePos;
     CellData* data = raw_data;
-    if (!data->state)
+    if (!data->state) {
         data->state = gameState;
+        return true;
+    }
+    return false;
 }
 
 void cellDraw(void* raw_data, Rectangle bounds) {
@@ -92,10 +95,41 @@ Game cellCreate() {
 typedef struct {
     Game cells[GRID_SIZE][GRID_SIZE];
     GameState winner;
+    Rectangle bounds;
 } GridData;
+
+Rectangle gridCalculateCellBounds(int y, int x, Rectangle gridBounds) {
+    assert(gridBounds.width == gridBounds.height);
+    float size = gridBounds.width;
+    float lineLen = size - GRID_PADDING * 2 * size;
+    float cellSize = (lineLen - (GRID_SIZE  - 1) * LINE_THICK * size) / GRID_SIZE;
+    return (Rectangle) {
+        .x = gridBounds.x + GRID_PADDING * size + x * (cellSize + LINE_THICK * size),
+        .y = gridBounds.y + GRID_PADDING * size + y * (cellSize + LINE_THICK * size),
+        .width  = cellSize,
+        .height = cellSize,
+    };
+}
+
+bool gridClicked(void* raw_data, GameState gameState, Vector2 mousePos) {
+    GridData* data = raw_data;
+    for (int y = 0; y < GRID_SIZE; ++y) {
+        for (int x = 0; x < GRID_SIZE; ++x) {
+            Game cell = data->cells[y][x];
+            Rectangle cellBounds = gridCalculateCellBounds(y, x, data->bounds);
+            if (mousePos.x >= cellBounds.x && mousePos.x < cellBounds.x + cellBounds.width &&
+                mousePos.y >= cellBounds.y && mousePos.y < cellBounds.y + cellBounds.height
+            ) {
+                return cell.clicked(cell.data, gameState, mousePos);
+            }
+        }
+    }
+    return false;
+}
 
 void gridDraw(void* raw_data, Rectangle bounds) {
     GridData* data = raw_data;
+    data->bounds = bounds;
 
     assert(bounds.width == bounds.height);
     Vector2 pos = (Vector2) { bounds.x, bounds.y };
@@ -121,12 +155,7 @@ void gridDraw(void* raw_data, Rectangle bounds) {
     for (int y = 0; y < GRID_SIZE; ++y) {
         for (int x = 0; x < GRID_SIZE; ++x) {
             Game cell = data->cells[y][x];
-            Rectangle cellBounds = {
-                .x = bounds.x + GRID_PADDING * size + x * (cellSize + LINE_THICK * size),
-                .y = bounds.y + GRID_PADDING * size + y * (cellSize + LINE_THICK * size),
-                .width  = cellSize,
-                .height = cellSize,
-            };
+            Rectangle cellBounds = gridCalculateCellBounds(y, x, bounds);
             cell.draw(cell.data, cellBounds);
         }
     }
@@ -138,13 +167,13 @@ Game gridCreate() {
     for (int y = 0; y < GRID_SIZE; ++y) {
         for (int x = 0; x < GRID_SIZE; ++x) {
             data->cells[y][x] = cellCreate();
-            data->cells[y][x].clicked(data->cells[y][x].data, (y+x)%2 + 1, Vector2Zero());
+            // data->cells[y][x].clicked(data->cells[y][x].data, (y+x)%2 + 1, Vector2Zero());
         }
     }
     data->winner = GAME_STATE_EMPTY;
 
     return (Game) {
-        .clicked = gameDummyClicked,
+        .clicked = gridClicked,
         .draw = gridDraw,
         .data = data,
     };
@@ -161,7 +190,7 @@ Game gridOfGridsCreate() {
     data->winner = GAME_STATE_EMPTY;
 
     return (Game) {
-        .clicked = gameDummyClicked,
+        .clicked = gridClicked,
         .draw = gridDraw,
         .data = data,
     };
@@ -175,6 +204,7 @@ int main() {
     SetWindowMinSize(640, 480);
 
     Game game = gridOfGridsCreate();
+    GameState state = GAME_STATE_CROSS;
 
     while (!WindowShouldClose()) {
         BeginDrawing();
@@ -193,9 +223,10 @@ int main() {
                 Vector2 mousePos = GetMousePosition();
 
                 if (mousePos.x >= rect.x && mousePos.x < rect.x + rect.width &&
-                    mousePos.y >= rect.y && mousePos.y < rect.y + rect.height
+                    mousePos.y >= rect.y && mousePos.y < rect.y + rect.height &&
+                    game.clicked(game.data, state, mousePos)
                 ) {
-                    game.clicked(game.data, GAME_STATE_CROSS, mousePos);
+                    state = -state;
                 }
             }
 
