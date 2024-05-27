@@ -1,0 +1,3 @@
+[submodule "src/arena"]
+	path = src/arena
+	url = https://github.com/tsoding/arena
