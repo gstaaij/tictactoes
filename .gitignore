@@ -2,6 +2,10 @@
 .vscode
 build
 
+# Raylib screenshots
+
+screenshot*.png
+
 # Nob stuff
 nob
 nob.old
