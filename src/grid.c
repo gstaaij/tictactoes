@@ -78,6 +78,7 @@ GameClickResult gridClicked(void* raw_data, GameState gameState, Vector2 mousePo
     GridData* data = raw_data;
     if (data->winner)
         goto fail;
+    data->allowShowTimer = 0.0f;
     for (int y = 0; y < GRID_SIZE; ++y) {
         for (int x = 0; x < GRID_SIZE; ++x) {
             Game cell = data->cells[y][x];
@@ -86,8 +87,8 @@ GameClickResult gridClicked(void* raw_data, GameState gameState, Vector2 mousePo
                 mousePos.y >= cellBounds.y && mousePos.y < cellBounds.y + cellBounds.height
             ) {
                 if (!data->allowedCells[y][x]) {
-                    data->allowShowTimer = 2.0;
-                    continue;
+                    data->allowShowTimer = 2.0f;
+                    goto fail;
                 }
                 GameClickResult cellResult = cell.clicked(cell.data, gameState, mousePos);
                 if (!cellResult.success)
