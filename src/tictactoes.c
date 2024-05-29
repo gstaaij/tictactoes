@@ -6,6 +6,7 @@
 #include "colors.h"
 #include "game.h"
 #include "grid.h"
+#include "cell.h"
 
 // stb-style libraries at the end, because we don't want the IMPLEMENTATION macros to be defined in the other headers
 #define ARENA_IMPLEMENTATION
@@ -35,6 +36,19 @@ int main() {
             Rectangle rect = { screenWidth/2 - size/2, screenHeight/2 - size/2, size, size };
 
             game.draw(game.data, rect, FOREGROUND_COLOR);
+
+            float offsetFromBorder = 10.0f;
+            float currentPlayerSize = size / 10;
+            if (currentPlayerSize > fabsf(screenWidth - screenHeight)) {
+                currentPlayerSize = GRID_PADDING * size - offsetFromBorder;
+            }
+            float x = offsetFromBorder;
+            float yw = screenWidth - offsetFromBorder - currentPlayerSize;
+            float yh = screenHeight - offsetFromBorder - currentPlayerSize;
+            cellDrawState(state, (Vector2) { x,  x  }, currentPlayerSize, FOREGROUND_COLOR);
+            cellDrawState(state, (Vector2) { x,  yh }, currentPlayerSize, FOREGROUND_COLOR);
+            cellDrawState(state, (Vector2) { yw, x  }, currentPlayerSize, FOREGROUND_COLOR);
+            cellDrawState(state, (Vector2) { yw, yh }, currentPlayerSize, FOREGROUND_COLOR);
 
             if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
                 Vector2 mousePos = GetMousePosition();
