@@ -3,7 +3,7 @@
 
 #define COMPILE_FOR_WINDOWS
 
-#define APP_NAME "tttultimate"
+#define APP_NAME "tictactoes"
 
 static const char* CFILES[] = {
     "src/"APP_NAME".c",

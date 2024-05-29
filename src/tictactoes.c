@@ -15,7 +15,7 @@ static Arena arena = {0};
 
 int main() {
     SetConfigFlags(FLAG_VSYNC_HINT | FLAG_MSAA_4X_HINT);
-    InitWindow(1280, 720, "TicTacToe Ultimate");
+    InitWindow(1280, 720, "TicTacToes");
     SetWindowState(FLAG_WINDOW_RESIZABLE);
     SetWindowMinSize(640, 480);
 
