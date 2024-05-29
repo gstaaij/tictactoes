@@ -14,4 +14,4 @@ typedef struct {
     Rectangle bounds;
 } GridData;
 
-Game gridCreate(Arena* arena, int depth);
+Game gridCreate(Arena* arena, int layers);

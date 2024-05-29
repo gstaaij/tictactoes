@@ -66,15 +66,15 @@ void gridDraw(void* raw_data, Rectangle bounds) {
     }
 }
 
-Game gridCreate(Arena* arena, int depth) {
+Game gridCreate(Arena* arena, int layers) {
     GridData* data = arena_alloc(arena, sizeof(*data));
     memset(data, sizeof(*data), 1);
     for (int y = 0; y < GRID_SIZE; ++y) {
         for (int x = 0; x < GRID_SIZE; ++x) {
-            if (depth == 0)
+            if (layers <= 1)
                 data->cells[y][x] = cellCreate(arena);
             else
-                data->cells[y][x] = gridCreate(arena, depth - 1);
+                data->cells[y][x] = gridCreate(arena, layers - 1);
             // data->cells[y][x].clicked(data->cells[y][x].data, (y+x)%2 + 1, Vector2Zero());
         }
     }

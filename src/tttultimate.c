@@ -20,7 +20,7 @@ int main() {
     SetWindowMinSize(640, 480);
 
     // Initialize the game
-    Game game = gridCreate(&arena, 1);
+    Game game = gridCreate(&arena, 2);
     GameState state = GAME_STATE_CROSS;
 
     while (!WindowShouldClose()) {
