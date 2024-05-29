@@ -34,14 +34,14 @@ int main() {
 
             Rectangle rect = { screenWidth/2 - size/2, screenHeight/2 - size/2, size, size };
 
-            game.draw(game.data, rect);
+            game.draw(game.data, rect, FOREGROUND_COLOR);
 
             if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
                 Vector2 mousePos = GetMousePosition();
 
                 if (mousePos.x >= rect.x && mousePos.x < rect.x + rect.width &&
                     mousePos.y >= rect.y && mousePos.y < rect.y + rect.height &&
-                    game.clicked(game.data, state, mousePos)
+                    game.clicked(game.data, state, mousePos).success
                 ) {
                     state = -state;
                 }

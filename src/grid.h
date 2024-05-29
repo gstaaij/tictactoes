@@ -10,6 +10,9 @@
 
 typedef struct {
     Game cells[GRID_SIZE][GRID_SIZE];
+    bool allowEverything;
+    bool allowedCells[GRID_SIZE][GRID_SIZE];
+    float allowShowTimer;
     GameState winner;
     Rectangle bounds;
 } GridData;

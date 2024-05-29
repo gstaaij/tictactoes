@@ -11,3 +11,5 @@ typedef struct {
 } CellData;
 
 Game cellCreate(Arena* arena);
+
+void cellDrawState(GameState state, Vector2 pos, float size, Color foregroundColor);
