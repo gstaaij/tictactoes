@@ -61,6 +61,12 @@ int main() {
                 }
             }
 
+            if (IsKeyPressed(KEY_R)) {
+                arena_reset(&arena);
+                game = gridCreate(&arena, 2);
+                state = GAME_STATE_CROSS;
+            }
+
         EndDrawing();
     }
 
