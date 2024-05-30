@@ -97,9 +97,14 @@ GameClickResult gridClicked(void* raw_data, GameState gameState, Vector2 mousePo
                 GameClickResult result = {0};
                 result.success = cellResult.success;
 
-                result.squareWon.active = true;
-                result.squareWon.square.x = x;
-                result.squareWon.square.y = y;
+                if (cell.getWinner(cell.data)) {
+                    result.squareWon.active = true;
+                    result.squareWon.square.x = x;
+                    result.squareWon.square.y = y;
+                } else {
+                    result.squareWon.active = true;
+                    result.squareWon.currentSquare = true;
+                }
 
                 gridCalculateWinner(data);
                 result.winner = data->winner;
@@ -110,11 +115,21 @@ GameClickResult gridClicked(void* raw_data, GameState gameState, Vector2 mousePo
 
                 if (cellResult.squareWon.active) {
                     Vector2 pos = cellResult.squareWon.square;
-                    Game cellThatHasWon = data->cells[(int)pos.y][(int)pos.x];
-                    data->allowEverything = cellThatHasWon.getWinner(cellThatHasWon.data) != GAME_STATE_EMPTY;
-                    for (int j = 0; j < GRID_SIZE; ++j) {
-                        for (int i = 0; i < GRID_SIZE; ++i) {
-                            data->allowedCells[j][i] = data->allowEverything || (i == (int)pos.x && j == (int)pos.y);
+                    if (cellResult.squareWon.currentSquare) {
+                        data->allowEverything = cell.getWinner(cell.data);
+                        for (int j = 0; j < GRID_SIZE; ++j) {
+                            for (int i = 0; i < GRID_SIZE; ++i) {
+                                data->allowedCells[j][i] = false;
+                            }
+                        }
+                        data->allowedCells[y][x] = true;
+                    } else {
+                        Game cellThatHasWon = data->cells[(int)pos.y][(int)pos.x];
+                        data->allowEverything = cellThatHasWon.getWinner(cellThatHasWon.data) != GAME_STATE_EMPTY;
+                        for (int j = 0; j < GRID_SIZE; ++j) {
+                            for (int i = 0; i < GRID_SIZE; ++i) {
+                                data->allowedCells[j][i] = data->allowEverything || (i == (int)pos.x && j == (int)pos.y);
+                            }
                         }
                     }
                 }
@@ -189,6 +204,7 @@ Game gridCreate(Arena* arena, int layers) {
     }
     data->allowEverything = true;
     data->winner = GAME_STATE_EMPTY;
+    data->layer = layers;
 
     return (Game) {
         .getWinner = gridGetWinner,

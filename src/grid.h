@@ -15,6 +15,7 @@ typedef struct {
     float allowShowTimer;
     GameState winner;
     Rectangle bounds;
+    int layer;
 } GridData;
 
 Game gridCreate(Arena* arena, int layers);

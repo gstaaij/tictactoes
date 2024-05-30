@@ -11,6 +11,7 @@ typedef enum {
 
 typedef struct {
     bool active;
+    bool currentSquare;
     Vector2 square;
 } GameSquarePos;
 
