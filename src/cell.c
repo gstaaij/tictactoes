@@ -43,7 +43,7 @@ void cellDrawState(GameState state, Vector2 pos, float size, Color foregroundCol
         } break;
         case GAME_STATE_CIRCLE: {
             pos = Vector2AddValue(pos, size/2);
-            DrawRing(pos, size / 2 - CELL_PADDING * size - CELL_LINE_THICK * size, size / 2 - CELL_PADDING * size, 0.0f, 360.0f, 36, foregroundColor);
+            DrawRing(pos, size / 2 - CELL_PADDING * size - CELL_LINE_THICK * size, size / 2 - CELL_PADDING * size, 0.0f, 360.0f, 72, foregroundColor);
         } break;
     }
 }
