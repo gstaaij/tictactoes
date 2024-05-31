@@ -17,6 +17,18 @@
 #define KEY_MOVE_SPEED 750.0f
 
 static Arena arena = {0};
+static Game game;
+static GameState state = GAME_STATE_CROSS;
+static Vector2 cameraPos = {0};
+static float scaleExp = 0.0f;
+
+static void reset(int layers) {
+    arena_reset(&arena);
+    game = gridCreate(&arena, layers);
+    state = GAME_STATE_CROSS;
+    cameraPos = (Vector2){0};
+    scaleExp = 0.0f;
+}
 
 int main() {
     SetConfigFlags(FLAG_VSYNC_HINT | FLAG_MSAA_4X_HINT);
@@ -25,10 +37,7 @@ int main() {
     SetWindowMinSize(640, 480);
 
     // Initialize the game
-    Game game = gridCreate(&arena, 2);
-    GameState state = GAME_STATE_CROSS;
-    Vector2 cameraPos = {0};
-    float scaleExp = 0.0f;
+    reset(2);
 
     while (!WindowShouldClose()) {
         BeginDrawing();
@@ -104,12 +113,16 @@ int main() {
             cameraPos.x += leftright / camera.zoom * KEY_MOVE_SPEED * GetFrameTime();
             cameraPos.y += updown / camera.zoom * KEY_MOVE_SPEED * GetFrameTime();
 
-            if (IsKeyPressed(KEY_R)) {
-                arena_reset(&arena);
-                game = gridCreate(&arena, 2);
-                state = GAME_STATE_CROSS;
-                cameraPos = (Vector2){0};
-                scaleExp = 0.0f;
+            if (IsKeyPressed(KEY_R) || IsKeyPressed(KEY_TWO)) {
+                reset(2);
+            } else if (IsKeyPressed(KEY_ONE)) {
+                reset(1);
+            } else if (IsKeyPressed(KEY_THREE)) {
+                reset(3);
+            } else if (IsKeyPressed(KEY_FOUR)) {
+                reset(4);
+            } else if (IsKeyPressed(KEY_FIVE)) {
+                reset(5);
             }
 
             DrawFPS(10, currentPlayerSize + 10);
