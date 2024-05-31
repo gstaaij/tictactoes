@@ -22,7 +22,7 @@ void gridCalculateWinner(GridData* data) {
     if (firstDiagonalSquare == GAME_STATE_EMPTY)
         diagonalWin = false;
     bool otherDiagonalWin = true;
-    GameState firstOtherDiagonalSquare = data->cells[0][GRID_SIZE].getWinner(data->cells[0][0].data);
+    GameState firstOtherDiagonalSquare = data->cells[0][GRID_SIZE-1].getWinner(data->cells[0][GRID_SIZE-1].data);
     if (firstOtherDiagonalSquare == GAME_STATE_EMPTY)
         otherDiagonalWin = false;
     for (int i = 0; i < GRID_SIZE; ++i) {
