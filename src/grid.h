@@ -14,6 +14,7 @@ typedef struct {
     bool allowedCells[GRID_SIZE][GRID_SIZE];
     float allowShowTimer;
     GameState winner;
+    int isHighlighted;
     Rectangle bounds;
     int layer;
 } GridData;

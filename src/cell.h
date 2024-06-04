@@ -8,6 +8,7 @@
 
 typedef struct {
     GameState state;
+    int isHighlighted;
 } CellData;
 
 Game cellCreate(Arena* arena);

@@ -90,6 +90,7 @@ int main() {
                     mousePos.y >= rect.y && mousePos.y < rect.y + rect.height &&
                     game.clicked(game.data, state, mousePos).success
                 ) {
+                    game.tick(game.data);
                     state = -state;
                 }
             }

@@ -38,7 +38,7 @@ void gridCalculateWinner(GridData* data) {
         }
         if (horizontalWin) {
             data->winner = firstHorizontalSquare;
-            return;
+            goto win;
         }
 
         bool verticalWin = true;
@@ -53,7 +53,7 @@ void gridCalculateWinner(GridData* data) {
         }
         if (verticalWin) {
             data->winner = firstVerticalSquare;
-            return;
+            goto win;
         }
 
         if (firstDiagonalSquare != data->cells[i][i].getWinner(data->cells[i][i].data))
@@ -64,9 +64,15 @@ void gridCalculateWinner(GridData* data) {
     }
     if (diagonalWin) {
         data->winner = firstDiagonalSquare;
+        goto win;
     } else if (otherDiagonalWin) {
         data->winner = firstOtherDiagonalSquare;
+        goto win;
     }
+    return;
+win:
+    // We set it to 2 because it's immediately decremented to 1 in gridTick
+    data->isHighlighted = 2;
 }
 
 GameState gridGetWinner(void* raw_data) {
@@ -142,6 +148,18 @@ fail:
     return (GameClickResult){0};
 }
 
+void gridTick(void* raw_data) {
+    GridData* data = raw_data;
+
+    for (int y = 0; y < GRID_SIZE; ++y) {
+        for (int x = 0; x < GRID_SIZE; ++x) {
+            data->cells[y][x].tick(data->cells[y][x].data);
+        }
+    }
+
+    if (data->isHighlighted) data->isHighlighted -= 1;
+}
+
 void gridDraw(void* raw_data, Rectangle bounds, Color foregroundColor) {
     GridData* data = raw_data;
     data->bounds = bounds;
@@ -185,7 +203,7 @@ void gridDraw(void* raw_data, Rectangle bounds, Color foregroundColor) {
     }
 
     if (data->winner) {
-        cellDrawState(data->winner, pos, size, foregroundColor);
+        cellDrawState(data->winner, pos, size, data->isHighlighted ? ColorAlpha(RED, foregroundColor.a/255.0f) : foregroundColor);
     }
 }
 
@@ -209,6 +227,7 @@ Game gridCreate(Arena* arena, int layers) {
     return (Game) {
         .getWinner = gridGetWinner,
         .clicked = gridClicked,
+        .tick = gridTick,
         .draw = gridDraw,
         .data = data,
     };

@@ -15,6 +15,8 @@ GameClickResult cellClicked(void* raw_data, GameState gameState, Vector2 mousePo
         GameClickResult result = {0};
         result.success = true;
         result.winner = data->state;
+        // We set it to 2 because it's immediately decremented to 1 in cellTick
+        data->isHighlighted = 2;
         return result;
     }
     return (GameClickResult){0};
@@ -27,7 +29,12 @@ void cellDraw(void* raw_data, Rectangle bounds, Color foregroundColor) {
     Vector2 pos = (Vector2) { bounds.x, bounds.y };
     float size = bounds.width;
 
-    cellDrawState(data->state, pos, size, foregroundColor);
+    cellDrawState(data->state, pos, size, data->isHighlighted ? ColorAlpha(RED, foregroundColor.a/255.0f) : foregroundColor);
+}
+
+void cellTick(void* raw_data) {
+    CellData* data = raw_data;
+    if (data->isHighlighted) data->isHighlighted -= 1;
 }
 
 void cellDrawState(GameState state, Vector2 pos, float size, Color foregroundColor) {
@@ -56,6 +63,7 @@ Game cellCreate(Arena* arena) {
     return (Game) {
         .getWinner = cellGetWinner,
         .clicked = cellClicked,
+        .tick = cellTick,
         .draw = cellDraw,
         .data = data,
     };
