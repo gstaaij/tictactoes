@@ -114,16 +114,18 @@ int main() {
             cameraPos.x += leftright / camera.zoom * KEY_MOVE_SPEED * GetFrameTime();
             cameraPos.y += updown / camera.zoom * KEY_MOVE_SPEED * GetFrameTime();
 
-            if (IsKeyPressed(KEY_R) || IsKeyPressed(KEY_TWO)) {
-                reset(2);
-            } else if (IsKeyPressed(KEY_ONE)) {
-                reset(1);
-            } else if (IsKeyPressed(KEY_THREE)) {
-                reset(3);
-            } else if (IsKeyPressed(KEY_FOUR)) {
-                reset(4);
-            } else if (IsKeyPressed(KEY_FIVE)) {
-                reset(5);
+            if (IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL)) {
+                if (IsKeyPressed(KEY_R) || IsKeyPressed(KEY_TWO)) {
+                    reset(2);
+                } else if (IsKeyPressed(KEY_ONE)) {
+                    reset(1);
+                } else if (IsKeyPressed(KEY_THREE)) {
+                    reset(3);
+                } else if (IsKeyPressed(KEY_FOUR)) {
+                    reset(4);
+                } else if (IsKeyPressed(KEY_FIVE)) {
+                    reset(5);
+                }
             }
 
             DrawFPS(10, currentPlayerSize + 10);
